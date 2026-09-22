@@ -28,14 +28,34 @@ impl Scanner {
     fn run(&mut self) {
         // TODO(you): drive the scan: read one token at a time until the source runs out, then
         //            add the EOF token. Spec 6.1 says which line EOF carries.
-        todo!("run")
+       //todo!("run")
+       while !self.at_end(){
+           self.scan_token();
+       }
+       self.add(TokenType::Eof);
     }
 
     fn scan_token(&mut self) {
         // TODO(you): recognise one token. Spec 1.2 lists every token type, 1.1 covers
         //            whitespace and comments, and an unrecognised character is 'Character is
         //            not part of any token.' (5.1).
-        todo!("scan_token")
+        //todo!("scan_token")
+        
+        let beg = self.advance(); //beg is short for beginning
+        match beg {
+            '\n' => self.line += 1, //white space tokens that dont mean anything, used to seperate tokens. \n takes you to a new line.
+            ' ' => (), //does n`othing, just for spacing
+            '\t' => (),
+            '\r' => (),
+            '(' => self.add(TokenType::LParen), //this code is for the scanner to regonize '(' as a token with meaning 
+            ')' => self.add(TokenType::RParen),
+            '{' => self.add(TokenType::LBrace),
+            '}' => self.add(TokenType::RBrace),
+            ',' => self.add(TokenType::Comma),
+            ';' => self.add(TokenType::Semicolon),
+            _=> self.error(self.line, "Character is not part of any token.") //fall through case, incase none of the tokens match
+        }
+        self.start = self.current //updateing the start to the current position so the next token can be scanned
     }
 
     fn string(&mut self) {
@@ -102,5 +122,6 @@ impl Scanner {
 
     fn error(&mut self, line: usize, message: &str) {
         self.errors.push(format!("[line {}] Error: {}", line, message));
+    
     }
 }
