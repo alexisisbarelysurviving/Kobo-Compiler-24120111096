@@ -109,7 +109,13 @@ fn run(source: &str, mode: Mode) -> i32 {
     resolver::resolve(&mut program);
 
     if let Mode::Disasm = mode {
-        print!("{}",.pret(&program),
+        print!("{}", disassembler::disassemble(&compiler::compile(&program)));
+        return 0;
+    }
+
+    let outcome = match mode {
+        Mode::Vm => vm::run(compiler::compile(&program)),
+        _ => interpreter::interpret(&program),
     };
     if let Err(e) = outcome {
         eprintln!("[line {}] Runtime error: {}", e.line, e.message);
