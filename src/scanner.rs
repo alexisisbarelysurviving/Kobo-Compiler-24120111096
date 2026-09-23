@@ -53,11 +53,22 @@ impl Scanner {
             '}' => self.add(TokenType::RBrace),
             ',' => self.add(TokenType::Comma),
             ';' => self.add(TokenType::Semicolon),
-            _=> self.error(self.line, "Character is not part of any token.") //fall through case, incase none of the tokens match
             '+' => self.add(TokenType::Plus),
             '-' => self.add(TokenType::Minus),
             '*' => self.add(TokenType::Star),
-            '/' => self.add(TokenType::Slash),
+            '/' => {
+                if self.peek()=='/' {
+                     while self.peek ()!= '\n' && !self.at_end() {
+                      self.advance();
+                    }
+                    if self.peek() == '\n' {
+                        self.line += 1;
+                        self.advance();
+                    }
+                } else{self.add(TokenType::Slash)}
+            },
+                        _=> self.error(self.line, "Character is not part of any token.") //fall through case, incase none of the tokens match
+
         }
         self.start = self.current //updateing the start to the current position so the next token can be scanned
     }
