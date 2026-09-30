@@ -66,7 +66,7 @@ impl Scanner {
             '*' => self.add(TokenType::Star),
             '/' => {
                 if self.peek()=='/' {
-                     while self.peek ()!= '\n' && !self.at_end() {
+                     while self.peek()!= '\n' && !self.at_end() {
                       self.advance();
                     }
                     if self.peek() == '\n' {
@@ -107,6 +107,10 @@ impl Scanner {
                     self.add(TokenType::Less);
                 }
             },
+            beg if beg.is_ascii_digit() => self.number(),
+            '"' => self.string(),
+            beg if beg.is_ascii_alphabetic() || beg == '_' => self.identifier(),
+
             _ => self.error(self.line, "Character is not part of any token.") //fall through case, incase none of the tokens match
 
         }
@@ -116,19 +120,52 @@ impl Scanner {
     fn string(&mut self) {
         // TODO(you): scan a string literal. A string may span lines (1.5); an unterminated one
         //            is reported at the line it opened on (5.1).
-        todo!("string")
+        //todo!("string")
+        let begins = self.line;
+        let mut has_terminated = false;
+        while !self.at_end() && !has_terminated{
+            match self.peek(){
+                '\n' => self.line += 1,
+                '"' => {
+                    has_terminated = true;
+                }
+                _ => ()
+            }
+            self.advance();
+        }
+
+        if !has_terminated{
+            self.error(begins, "String is never closed.");
+            return
+        }
+        self.add(TokenType::Str);   
     }
 
     fn number(&mut self) {
         // TODO(you): scan a number literal: digits, then a fractional part only when a digit
         //            follows the dot (1.4).
-        todo!("number")
+        // todo!("number")
+        while self.peek().is_ascii_digit(){
+            self.advance();
+        }
+        if self.peek() == '.' && self.peek_next().is_ascii_digit(){
+            self.advance();
+            while self.peek().is_ascii_digit(){
+                self.advance();
+            }
+        }
+        self.add(TokenType::Number);
     }
 
     fn identifier(&mut self) {
         // TODO(you): scan an identifier, then decide whether it is a keyword; keyword() in
         //            token.rs does the lookup (1.2, 1.3).
-        todo!("identifier")
+        // todo!("identifier")
+        while self.peek().is_ascii_alphanumeric() || self.peek() == '_'{
+            self.advance();
+        }
+        let text: String = self.src[self.start..self.current].iter().collect();
+        self.add(keyword(&text).unwrap_or(TokenType::Identifier));
     }
 
     // --- primitives ---------------------------------------------------------------
