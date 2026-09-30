@@ -74,8 +74,40 @@ impl Scanner {
                         self.advance();
                     }
                 } else{self.add(TokenType::Slash)}
+            }, 
+            '!' => {
+                if self.peek()== '=' {
+                    self.advance();
+                    self.add(TokenType::BangEqual);
+                } else {
+                    self.add(TokenType::Bang);
+                }
             },
-                        _=> self.error(self.line, "Character is not part of any token.") //fall through case, incase none of the tokens match
+             '=' => {
+                if self.peek()== '=' {
+                    self.advance();
+                    self.add(TokenType::EqualEqual);
+                } else {
+                    self.add(TokenType::Equal);
+                }
+            },
+             '>' => {
+                if self.peek()== '=' {
+                    self.advance();
+                    self.add(TokenType::GreaterEqual);
+                } else {
+                    self.add(TokenType::Greater);
+                }
+            },
+             '<' => {
+                if self.peek()== '=' {
+                    self.advance();
+                    self.add(TokenType::LessEqual);
+                } else {
+                    self.add(TokenType::Less);
+                }
+            },
+            _ => self.error(self.line, "Character is not part of any token.") //fall through case, incase none of the tokens match
 
         }
         self.start = self.current //updateing the start to the current position so the next token can be scanned
