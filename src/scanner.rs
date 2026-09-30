@@ -32,6 +32,14 @@ impl Scanner {
        while !self.at_end(){
            self.scan_token();
        }
+     
+       let last_token = self.tokens.last();
+       if let Some(token) = last_token{
+        self.line = token.line;
+       } else {
+        self.line = 1;
+       }
+
        self.add(TokenType::Eof);
     }
 
