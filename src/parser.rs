@@ -157,17 +157,38 @@ impl Parser {
     }
 
     fn equality(&mut self) -> Parsed<Expr> {
-        // TODO(you): spec 3.2, one rung of the precedence ladder.
-        // TEMPORARY: enough of this rule to let the ones below it run. Replace it in its
-        //            own week; the marking tests for it fail until you do.
-        self.comparison()
+        // spec 3.2: comparison ( ( "!=" | "==" ) comparison )*
+        let mut expr = self.comparison()?;
+        while self.matches(&[TokenType::BangEqual, TokenType::EqualEqual]) {
+            let op = self.previous();
+            let right = self.comparison()?;
+            expr = Expr::Binary {
+                left: Box::new(expr),
+                op,
+                right: Box::new(right),
+            };
+        }
+        Ok(expr)
     }
 
     fn comparison(&mut self) -> Parsed<Expr> {
-        // TODO(you): spec 3.2, one rung of the precedence ladder.
-        // TEMPORARY: enough of this rule to let the ones below it run. Replace it in its
-        //            own week; the marking tests for it fail until you do.
-        self.term()
+        // spec 3.2: term ( ( ">" | ">=" | "<" | "<=" ) term )*
+        let mut expr = self.term()?;
+        while self.matches(&[
+            TokenType::Greater,
+            TokenType::GreaterEqual,
+            TokenType::Less,
+            TokenType::LessEqual,
+        ]) {
+            let op = self.previous();
+            let right = self.term()?;
+            expr = Expr::Binary {
+                left: Box::new(expr),
+                op,
+                right: Box::new(right),
+            };
+        }
+        Ok(expr)
     }
 
     fn term(&mut self) -> Parsed<Expr> {
