@@ -317,11 +317,27 @@ impl Parser {
     /// A loop, not recursion: `f(1)(2)` is one callee called twice, and the grammar says
     /// `call → primary ( "(" arguments? ")" )*` for exactly that reason.
     fn call(&mut self) -> Parsed<Expr> {
-        // TODO(you): spec 3.2: call -> primary ( '(' arguments? ')' )*. That is a loop, not
-        //            recursion; f(1)(2) is one callee called twice.
-        // TEMPORARY: enough of this rule to let the ones below it run. Replace it in its
-        //            own week; the marking tests for it fail until you do.
-        self.primary()
+        // spec 3.2: call -> primary ( '(' arguments? ')' )*. A loop, not recursion:
+        // f(1)(2) is one callee called twice.
+        let mut expr = self.primary()?;
+        while self.matches(&[TokenType::LParen]) {
+            let mut args = Vec::new();
+            if !self.check(TokenType::RParen) {
+                loop {
+                    args.push(self.expression()?);
+                    if !self.matches(&[TokenType::Comma]) {
+                        break;
+                    }
+                }
+            }
+            let paren = self.consume(TokenType::RParen, "Expect ')' after arguments.")?;
+            expr = Expr::Call {
+                callee: Box::new(expr),
+                paren,
+                args,
+            };
+        }
+        Ok(expr)
     }
 
     fn primary(&mut self) -> Parsed<Expr> {
